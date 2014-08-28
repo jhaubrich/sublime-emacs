@@ -142,7 +142,8 @@ With a prefix argument, insert a newline above the current line."
 (defun sublime-minibuffer-setup-hook ()
   (sublime-emacs 0))
 
-
+;;(setq minor-mode-overriding-map-alist 'sublime-emacs-map)
+;;(setq minor-mode-map-alist sublime-emacs-map)
 (provide 'sublime-emacs)
 
 
