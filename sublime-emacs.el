@@ -1,10 +1,46 @@
+;;
+;; Vendor
+;;
+;; I've tried to minimize the external requiremnts. These I consider
+;; to the sublime experience.
+
+;; https://github.com/emacs-helm/helm
+(add-to-list 'load-path "/path/to/helm/directory")
+(require 'helm-config)
+;; (global-set-key (kbd "C-c h") 'helm-mini)
+
+;; Projectile
+(projectile-global-mode)
+
+;; https://github.com/scottjad/ido-hacks
+(add-to-list 'load-path "~/.emacs.d/vendor/ido-hacks")
+(require 'ido-hacks)
+(ido-mode 1)
+(ido-everywhere 1)
+
+;; web-mode (http://web-mode.org/)
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.[gj]sp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tmpl\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+
+;; --
+
+
+;; super/hyper (http://whattheemacsd.com/)
+;(setq mac-option-modifier 'super)
+;(setq ns-function-modifier 'hyper)
 
 ;; Cursor aestetic
 (blink-cursor-mode t)
 (setq-default cursor-type 'bar)
-
-
-(projectile-global-mode)
 
 ;; CUA mode
 (cua-mode t)
@@ -12,8 +48,6 @@
 (setq cua-enable-cua-keys nil)  ;; We're going to use our own (osx) keys
 (transient-mark-mode 1) ;; No region when it is not highlighted
 (setq mouse-drag-copy-region nil)  ; stops selection with a mouse being immediately injected to the kill ring
-
-
 
 (defvar sublime-emacs-map (make-keymap) "sublimating emacs...")
 
@@ -53,6 +87,12 @@
 ; movement
 (define-key sublime-emacs-map (kbd "M-<up>")        'beginning-of-buffer)
 (define-key sublime-emacs-map (kbd "M-<down>")      'end-of-buffer)
+(define-key sublime-emacs-map (kbd "M-<right>")     'end-of-line)
+(define-key sublime-emacs-map (kbd "M-<left>")      'beginning-of-line)
+
+; small change to emacs defaults
+(define-key sublime-emacs-map (kbd "M-n")           'forward-paragraph)
+(define-key sublime-emacs-map (kbd "M-p")           'backward-paragraph)
 ;; vim/emacs expiriment
 ;; (define-key sublime-emacs-map (kbd "M-h")           'backward-char)
 ;; (define-key sublime-emacs-map (kbd "M-j")           'next-line)
