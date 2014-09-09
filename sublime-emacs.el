@@ -1,24 +1,53 @@
+; TODO:
+; - M-l should square up selected region
+; - M-. Confilct with ispell
+; - mc/select-next-symbol-like-this breaks mark in evil normal
+; - m-/ toggle comment without selecting line (default binding for hippie-expand)
+
+;; Required packages:
+;; - [autopair](https://github.com/capitaomorte/autopair)
+;; - [helm](https://github.com/emacs-helm/helm)
+;; - [projectile]()
+;; - [ido-hacks](https://github.com/scottjad/ido-hacks)
+;; - move-text
+;; - multiple-cursors
+;; - [web-mode](http://web-mode.org/)
+;; - [page-break-line](https://github.com/purcell/page-break-lines)
+
 ;;
 ;; Vendor
 ;;
-;; I've tried to minimize the external requiremnts. These I consider
-;; to the sublime experience.
 
-;; https://github.com/emacs-helm/helm
-(add-to-list 'load-path "/path/to/helm/directory")
-(require 'helm-config)
-;; (global-set-key (kbd "C-c h") 'helm-mini)
+;; Scrolling (don't jump 1/2 the page when reaching the bottom)
+(setq scroll-step 1)
+(setq scroll-conservatively 10000)
+(setq auto-window-vscroll nil)
+  
+(require 'autopair)
+(autopair-global-mode)
 
-;; Projectile
 (projectile-global-mode)
 
-;; https://github.com/scottjad/ido-hacks
 (add-to-list 'load-path "~/.emacs.d/vendor/ido-hacks")
 (require 'ido-hacks)
 (ido-mode 1)
 (ido-everywhere 1)
 
-;; web-mode (http://web-mode.org/)
+; works, but drag-stuff looks to be better 
+(require 'move-text)
+(define-key sublime-emacs-map [M-C-up]              'move-text-up)
+(define-key sublime-emacs-map [M-C-down]            'move-text-down)
+
+; CMD-d and more
+(require 'multiple-cursors)
+(define-key sublime-emacs-map (kbd "C-c C-")        'mc/edit-lines)
+(define-key sublime-emacs-map (kbd "M-d")           'mc/mark-next-like-this)
+(define-key sublime-emacs-map (kbd "s-SPC")         'set-rectangular-region-anchor)
+(define-key sublime-emacs-map (kbd "C-<")           'mc/mark-previous-like-this)
+(define-key sublime-emacs-map (kbd "C-c C-<")       'mc/mark-all-like-this)
+(global-unset-key (kbd "s-<down-mouse-1>"))
+(global-set-key (kbd "s-<mouse-1>")                 'mc/add-cursor-on-click)
+
 (require 'web-mode)
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
@@ -31,12 +60,17 @@
 (add-to-list 'auto-mode-alist '("\\.tmpl\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 
-;; --
+;; replace ^L with horizontal lines
+(global-page-break-lines-mode)
 
+
+;;
+;; Basics
+;;
 
 ;; super/hyper (http://whattheemacsd.com/)
-;(setq mac-option-modifier 'super)
-;(setq ns-function-modifier 'hyper)
+(setq mac-option-modifier 'super)  ; breaks mac-special-chars
+(setq ns-function-modifier 'hyper)
 
 ;; Cursor aestetic
 (blink-cursor-mode t)
@@ -48,16 +82,18 @@
 (setq cua-enable-cua-keys nil)  ;; We're going to use our own (osx) keys
 (transient-mark-mode 1) ;; No region when it is not highlighted
 (setq mouse-drag-copy-region nil)  ; stops selection with a mouse being immediately injected to the kill ring
+(define-key global-map (kbd "<S-down-mouse-1>") 'mouse-save-then-kill) ; shift-click to extend region
 
 (defvar sublime-emacs-map (make-keymap) "sublimating emacs...")
 
 (define-key sublime-emacs-map (kbd "<escape>")      'keyboard-quit)
 (define-key sublime-emacs-map (kbd "M-s")           'save-buffer)
 (define-key sublime-emacs-map (kbd "M-w")           'kill-buffer)
-;; (define-key sublime-emacs-map (kbd "M-w")           'kill-buffer-and-window)
-;; (define-key sublime-emacs-map (kbd "M-o")           'switch-to-buffer)
+;(define-key sublime-emacs-map (kbd "M-w")           'kill-buffer-and-window)
+
 (defun sublime-files ()
-  "Open files using projectile if in a project."
+  "Open files using projectile if in a project. Closest
+approximation to sublime projects. Better, in fact."
   (interactive)
   (if (projectile-project-p)
       (helm-projectile)
@@ -65,7 +101,7 @@
 (define-key sublime-emacs-map (kbd "M-o")           'sublime-files)
 
 (defun xah-new-empty-buffer ()
-  "Open a new empty buffer."
+  "Open a new empty buffer. Not default sublime."
   (interactive)
   (let ((buf (generate-new-buffer "untitled")))
     (switch-to-buffer buf)
@@ -73,9 +109,10 @@
     (setq buffer-offer-save t)))
 (define-key sublime-emacs-map (kbd "M-t")           'xah-new-empty-buffer)
 
-;(define-key sublime-emacs-map (kbd "M-x") 'execute-extended-command) ;M-x
+;(define-key sublime-emacs-map (kbd "M-x")          'execute-extended-command) ;M-x
 (define-key sublime-emacs-map (kbd "C-.")           'smex)
-;(define-key sublime-emacs-map (kbd "M-p")           'smex)
+(define-key sublime-emacs-map (kbd "M-.")           'smex) ; emacs default for find-tags
+
 (setq smex-prompt-string "⌘ ")
 
 ; Standard OS X bindings
@@ -100,19 +137,7 @@
 ;; (define-key sublime-emacs-map (kbd "M-l")           'forward-char)
 
 
-; Sublime basics
-
-; CMD-d and more
-(require 'multiple-cursors)
-(define-key sublime-emacs-map (kbd "C-c C-")        'mc/edit-lines)
-(define-key sublime-emacs-map (kbd "M-d")           'mc/mark-next-like-this)
-(define-key sublime-emacs-map (kbd "C-<")           'mc/mark-previous-like-this)
-(define-key sublime-emacs-map (kbd "C-c C-<")       'mc/mark-all-like-this)
-
-;; (global-unset-key (kbd "M-<down-mouse-1>"))
-;; (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click)
-
-
+(define-key global-map (kbd "RET") 'newline-and-indent)
 ; Newline above and below
 ; http://stackoverflow.com/questions/2173324/emacs-equivalents-of-vims-dd-o-o
 (defun vi-open-line-above ()
@@ -123,6 +148,7 @@
   (newline)
   (forward-line -1)
   (indent-according-to-mode))
+(define-key sublime-emacs-map (kbd "M-<return>")    'vi-open-line-below)
 
 (defun vi-open-line-below ()
   "Insert a newline below the current line and put point at beginning."
@@ -130,26 +156,9 @@
   (unless (eolp)
     (end-of-line))
   (newline-and-indent))
-
-(defun vi-open-line (&optional abovep)
-  "Insert a newline below the current line and put point at beginning.
-With a prefix argument, insert a newline above the current line."
-  (interactive "P")
-  (if abovep
-      (vi-open-line-above)
-    (vi-open-line-below)))
-
-;;(define-key sublime-emacs-map (kbd "<return>") 'newline-and-indent)
-(define-key global-map (kbd "RET") 'newline-and-indent)
-(define-key sublime-emacs-map (kbd "M-<return>")    'vi-open-line-below)
 (define-key sublime-emacs-map (kbd "M-S-<return>")  'vi-open-line-above)
 
 
-; Move selected text
-(require 'move-text)  ; works, but drag-stuff looks to be better 
-(define-key sublime-emacs-map [M-C-up]              'move-text-up)
-(define-key sublime-emacs-map [M-C-down]            'move-text-down)
-                    
 ; select line
 (defun select-current-line (arg)
   "Select the current line"
@@ -168,9 +177,14 @@ With a prefix argument, insert a newline above the current line."
   (yank)
   (open-line 1)
   (next-line 1)
-  (yank)
-)
+  (yank))
 (define-key sublime-emacs-map (kbd "M-D")           'duplicate-line)
+
+;; Indent
+;; Just use python-mode indent. Set to 4 spaces. :shrug: good enough for now.
+(define-key sublime-emacs-map (kbd "M-]")           'python-indent-shift-right)
+(define-key sublime-emacs-map (kbd "M-[")           'python-indent-shift-left)
+
 
 ;; Wonderful minibuffer advice found here: https://stackoverflow.com/questions/683425/globally-override-key-binding-in-emacs/5340797#5340797
 (define-minor-mode sublime-emacs
@@ -185,15 +199,3 @@ With a prefix argument, insert a newline above the current line."
 ;;(setq minor-mode-overriding-map-alist 'sublime-emacs-map)
 ;;(setq minor-mode-map-alist sublime-emacs-map)
 (provide 'sublime-emacs)
-
-
-; Keeps these out of the minibuffer (which breaks ESC as exit)
-;(add-hook 'minibuffer-setup-hook `sublime-minibuffer-setup-hook)
-
-; todo
-; m-/    toggle comment (default binding for hippie-expand)
-; M-l    select line (http://www.emacswiki.org/emacs/CopyingWholeLines)
-; TAB    might not be a problem, seems neat
-; M-o    open file (git-find-file?) (dired?)
-; M-f    find
-; M-[    indent/outdent (http://stackoverflow.com/questions/11623189/how-to-bind-keys-to-indent-unindent-region-in-emacs)
