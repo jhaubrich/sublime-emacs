@@ -1,18 +1,4 @@
-; TODO:
-; - M-l should square up selected region
-; - M-. Confilct with ispell
-; - mc/select-next-symbol-like-this breaks mark in evil normal
-; - m-/ toggle comment without selecting line (default binding for hippie-expand)
-
-;; Required packages:
-;; - [autopair](https://github.com/capitaomorte/autopair)
-;; - [helm](https://github.com/emacs-helm/helm)
-;; - [projectile]()
-;; - [ido-hacks](https://github.com/scottjad/ido-hacks)
-;; - move-text
-;; - multiple-cursors
-;; - [web-mode](http://web-mode.org/)
-;; - [page-break-line](https://github.com/purcell/page-break-lines)
+(defvar sublime-emacs-map (make-keymap) "sublimating emacs...")
 
 ;;
 ;; Vendor
@@ -83,8 +69,6 @@
 (transient-mark-mode 1) ;; No region when it is not highlighted
 (setq mouse-drag-copy-region nil)  ; stops selection with a mouse being immediately injected to the kill ring
 (define-key global-map (kbd "<S-down-mouse-1>") 'mouse-save-then-kill) ; shift-click to extend region
-
-(defvar sublime-emacs-map (make-keymap) "sublimating emacs...")
 
 (define-key sublime-emacs-map (kbd "<escape>")      'keyboard-quit)
 (define-key sublime-emacs-map (kbd "M-s")           'save-buffer)
