@@ -14,10 +14,22 @@
 
 (projectile-global-mode)
 
-(add-to-list 'load-path "~/.emacs.d/vendor/ido-hacks")
-(require 'ido-hacks)
 (ido-mode 1)
+(add-to-list 'load-path "~/.emacs.d/vendor/ido-hacks")
+(require 'ido-hacks nil t)
 (ido-everywhere 1)
+(require 'ido-vertical-mode)  ;; I <3 u
+(ido-vertical-mode 1)
+(if (commandp 'ido-vertical-mode) 
+    (progn
+      (ido-vertical-mode 1)
+      (setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)))
+
+;; Revisit `helm-mode' for `helm-grep', `helm-regexp', and other amazing stuff
+;; (https://lists.gnu.org/archive/html/help-gnu-emacs/2014-01/msg00440.html)
+;; (require 'helm-config) 
+;; (helm-mode 1)
+;; (find-file-read-only . ido)
 
 ; works, but drag-stuff looks to be better 
 (require 'move-text)
@@ -72,17 +84,28 @@
 
 (define-key sublime-emacs-map (kbd "<escape>")      'keyboard-quit)
 (define-key sublime-emacs-map (kbd "M-s")           'save-buffer)
-(define-key sublime-emacs-map (kbd "M-w")           'kill-buffer)
+(define-key sublime-emacs-map (kbd "M-w")           'quit-window)
 ;(define-key sublime-emacs-map (kbd "M-w")           'kill-buffer-and-window)
 
-(defun sublime-files ()
+;; TODO: This `find' overrides an important emacs convention. Perhaps
+;; it's best to learn the emacs way in this case
+;; (define-key sublime-emacs-map (kbd "M-f")           'isearch-forward)
+;; (define-key sublime-emacs-map (kbd "M-F")           'rgrep)
+
+;; TODO: the default `comment-dwim' might again be better in this case
+;; (define-key sublime-emacs-map (kbd "M-/")           'subl/comment-line)
+
+
+(defun subl/show-files ()
   "Open files using projectile if in a project. Closest
 approximation to sublime projects. Better, in fact."
+  ;; { "keys": ["super+p"], "command": "show_overlay", "args": {"overlay": "goto", "show_files": true} },
   (interactive)
   (if (projectile-project-p)
       (helm-projectile)
     (helm-for-files)))
-(define-key sublime-emacs-map (kbd "M-o")           'sublime-files)
+(define-key sublime-emacs-map (kbd "M-o")           'helm-for-files)
+(define-key sublime-emacs-map (kbd "M-O")           'subl/show-files)
 
 (defun xah-new-empty-buffer ()
   "Open a new empty buffer. Not default sublime."
@@ -93,17 +116,45 @@ approximation to sublime projects. Better, in fact."
     (setq buffer-offer-save t)))
 (define-key sublime-emacs-map (kbd "M-t")           'xah-new-empty-buffer)
 
-;(define-key sublime-emacs-map (kbd "M-x")          'execute-extended-command) ;M-x
-(define-key sublime-emacs-map (kbd "C-.")           'smex)
-(define-key sublime-emacs-map (kbd "M-.")           'smex) ; emacs default for find-tags
-
+;; TODO: Use sublime's command_palette binding (M-P)
+;; { "keys": ["super+shift+p"], "command": "show_overlay", "args": {"overlay": "command_palette"} },
 (setq smex-prompt-string "⌘ ")
+(define-key sublime-emacs-map (kbd "C-.")           'smex)
+(define-key sublime-emacs-map (kbd "C-;")           'smex)
+(define-key sublime-emacs-map (kbd "M-.")           'smex) ; emacs default for find-tags
+;(define-key sublime-emacs-map (kbd "M-x")          'execute-extended-command) ;M-x
+
+;; M-k is the sublime cord default
+;; probably going to override this to be smex
+(define-prefix-command 'sublime-k)
+(global-set-key (kbd "M-k") 'sublime-k)  ; defaut: kill-sentence (wont be missed)
+(define-key sublime-k (kbd "s") 'split-window-horizontally) ; PERSONAL
+(define-key sublime-k (kbd "o") 'delete-other-windows)	    ; PERSONAL
+;; { "keys": ["super+k", "super+b"], "command": "toggle_side_bar" },
+;; { "keys": ["super+k", "super+u"], "command": "upper_case" },
+(define-key sublime-k (kbd "M-u") 'upcase-word)
+;; { "keys": ["super+k", "super+l"], "command": "lower_case" },
+(define-key sublime-k (kbd "M-l") 'downcase-word)
+;; { "keys": ["super+k", "super+space"], "command": "set_mark" },
+;; { "keys": ["super+k", "super+a"], "command": "select_to_mark" },
+;; { "keys": ["super+k", "super+w"], "command": "delete_to_mark" },
+;; { "keys": ["super+k", "super+x"], "command": "swap_with_mark" },
+;; { "keys": ["super+k", "super+g"], "command": "clear_bookmarks", "args": {"name": "mark"} },
+;; { "keys": ["super+k", "super+y"], "command": "yank" },
+;; { "keys": ["super+k", "super+k"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Delete to Hard EOL.sublime-macro"} },
+;; { "keys": ["super+k", "super+backspace"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Delete to Hard BOL.sublime-macro"} },
+;; { "keys": ["super+k", "super+c"], "command": "show_at_center" },
+
+
 
 ; Standard OS X bindings
 (define-key sublime-emacs-map (kbd "M-z")           'undo)
 (define-key sublime-emacs-map (kbd "M-c")           'kill-ring-save)
 (define-key sublime-emacs-map (kbd "M-x")           'kill-region)
 (define-key sublime-emacs-map (kbd "M-v")           'yank)
+(define-key sublime-emacs-map (kbd "M-a")           'mark-whole-buffer)
+(define-key sublime-emacs-map (kbd "M-'")           'er/expand-region)
+
 
 ; movement
 (define-key sublime-emacs-map (kbd "M-<up>")        'beginning-of-buffer)
@@ -112,8 +163,8 @@ approximation to sublime projects. Better, in fact."
 (define-key sublime-emacs-map (kbd "M-<left>")      'beginning-of-line)
 
 ; small change to emacs defaults
-(define-key sublime-emacs-map (kbd "M-n")           'forward-paragraph)
-(define-key sublime-emacs-map (kbd "M-p")           'backward-paragraph)
+(define-key sublime-emacs-map (kbd "M-n")           'forward-paragraph)   ; PERSONAL
+(define-key sublime-emacs-map (kbd "M-p")           'backward-paragraph)  ; PERSONAL
 ;; vim/emacs expiriment
 ;; (define-key sublime-emacs-map (kbd "M-h")           'backward-char)
 ;; (define-key sublime-emacs-map (kbd "M-j")           'next-line)
@@ -124,7 +175,7 @@ approximation to sublime projects. Better, in fact."
 (define-key global-map (kbd "RET") 'newline-and-indent)
 ; Newline above and below
 ; http://stackoverflow.com/questions/2173324/emacs-equivalents-of-vims-dd-o-o
-(defun vi-open-line-above ()
+(defun subl/open-line-above ()
   "Insert a newline above the current line and put point at beginning."
   (interactive)
   (unless (bolp)
@@ -132,29 +183,35 @@ approximation to sublime projects. Better, in fact."
   (newline)
   (forward-line -1)
   (indent-according-to-mode))
-(define-key sublime-emacs-map (kbd "M-<return>")    'vi-open-line-below)
+(define-key sublime-emacs-map (kbd "M-<return>")    'subl/open-line-below)
 
-(defun vi-open-line-below ()
+(defun subl/open-line-below ()
   "Insert a newline below the current line and put point at beginning."
   (interactive)
   (unless (eolp)
     (end-of-line))
   (newline-and-indent))
-(define-key sublime-emacs-map (kbd "M-S-<return>")  'vi-open-line-above)
+(define-key sublime-emacs-map (kbd "M-S-<return>")  'subl/open-line-above)
 
 
 ; select line
-(defun select-current-line (arg)
+(defun subl/expand-selection-to-line (arg)
   "Select the current line"
+  ;; { "keys": ["super+l"], "command": "expand_selection", "args": {"to": "line"} },
+  ;; TODO: Doesn't expand current selected region to line
   (interactive "p")
-  (if (memq last-command '(select-current-line))
-      (next-line)
-    (set-mark (line-beginning-position)))
-    (end-of-line))
-(define-key sublime-emacs-map (kbd "M-l")           'select-current-line)
+  (if (memq last-command '(subl/expand-selection-to-line))
+      (progn
+	(next-line)
+	(beginning-of-line))
+      (progn
+	(set-mark (line-beginning-position))
+	(next-line)
+	(beginning-of-line))))
+(define-key sublime-emacs-map (kbd "M-l")           'subl/expand-selection-to-line)
 
 ; duplicate current line
-(defun duplicate-line()
+(defun subl/duplicate-line()
   (interactive)
   (move-beginning-of-line 1)
   (kill-line)
@@ -162,10 +219,11 @@ approximation to sublime projects. Better, in fact."
   (open-line 1)
   (next-line 1)
   (yank))
-(define-key sublime-emacs-map (kbd "M-D")           'duplicate-line)
+(define-key sublime-emacs-map (kbd "M-D")           'subl/duplicate-line)
 
 ;; Indent
 ;; Just use python-mode indent. Set to 4 spaces. :shrug: good enough for now.
+;; TODO: This only works after a python file has been opened
 (define-key sublime-emacs-map (kbd "M-]")           'python-indent-shift-right)
 (define-key sublime-emacs-map (kbd "M-[")           'python-indent-shift-left)
 
